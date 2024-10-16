@@ -1,0 +1,353 @@
+package com.inoo.sutoriapp.ui.story.ui.addstory
+
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.WindowInsets
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.ProgressBar
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.inoo.sutoriapp.databinding.ActivityAddStoryBinding
+import com.inoo.sutoriapp.ui.customview.CustomEditText
+import com.inoo.sutoriapp.ui.story.ui.StoryViewModel
+import com.inoo.sutoriapp.utils.Utils.compressImageSize
+import com.inoo.sutoriapp.utils.Utils.createCustomTempFile
+import com.inoo.sutoriapp.utils.Utils.showToast
+import com.inoo.sutoriapp.utils.Utils.uriToFile
+import com.inoo.sutoriapp.R
+import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
+import com.inoo.sutoriapp.data.pref.SessionViewModel
+import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
+import com.inoo.sutoriapp.data.pref.dataStore
+import com.inoo.sutoriapp.utils.Utils.rotateImageIfRequired
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import java.io.FileOutputStream
+
+@Suppress("DEPRECATION")
+class AddStoryActivity : AppCompatActivity() {
+    private var _binding: ActivityAddStoryBinding? = null
+    private val binding get() = _binding!!
+
+    private val REQUEST_CODE_PERMISSIONS = 10
+    private val REQUIRED_PERMISSIONS = arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+
+    private val storyViewModel: StoryViewModel by viewModels()
+    private val sessionViewModel: SessionViewModel by viewModels{
+        SessionViewModelFactory.getInstance(this, pref)
+    }
+    private lateinit var pref : SutoriAppPreferences
+    private lateinit var token: String
+
+    private var cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+    private lateinit var cameraXContainer: ConstraintLayout
+    private lateinit var previewView: PreviewView
+    private lateinit var buttonCapture: ImageButton
+    private lateinit var buttonFlipCamera: ImageButton
+    private lateinit var buttonGallery: Button
+
+    private lateinit var addStoryContainer: ConstraintLayout
+    private lateinit var imagePreview: ImageView
+    private lateinit var edAddDescription : CustomEditText
+    private lateinit var buttonAdd: ImageButton
+
+    private lateinit var progressBar: ProgressBar
+
+    private var currentImageUri: Uri? = null
+    private var isFrontCamera: Boolean = false
+    private var isToastShown: Boolean = false
+    private lateinit var imageCapture: ImageCapture
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = ActivityAddStoryBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        pref = SutoriAppPreferences.getInstance(dataStore)
+
+        cameraXContainer = binding.cameraxContainer
+        previewView = binding.previewView
+        buttonFlipCamera = binding.buttonFlipCamera
+        buttonCapture = binding.buttonCapture
+        buttonGallery = binding.buttonGallery
+
+        addStoryContainer = binding.addStoryContainer
+        imagePreview = binding.ivImagePreview
+        edAddDescription = binding.edAddDescription
+        buttonAdd = binding.buttonAdd
+
+        progressBar = binding.progressBar
+
+
+        sessionViewModel.getToken().observe(this) { token ->
+            this.token = token
+            setupView()
+        }
+
+    }
+
+    private fun setupView(){
+        requestPermissions()
+
+        buttonFlipCamera.setOnClickListener {
+            flipCamera()
+        }
+
+        buttonCapture.setOnClickListener {
+            takePhoto()
+        }
+
+        buttonGallery.setOnClickListener {
+            openGallery()
+        }
+
+        buttonAdd.setOnClickListener {
+            sendStory()
+        }
+    }
+
+    private fun requestPermissions() {
+        if (allPermissionsGranted()) {
+            startCamera()
+        } else {
+            showPermissionDialog()
+        }
+    }
+
+    private fun hideSystemUI() {
+        @Suppress("DEPRECATION")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.hide(WindowInsets.Type.statusBars())
+        } else {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+        }
+        supportActionBar?.hide()
+    }
+
+    private fun allPermissionsGranted(): Boolean {
+        return REQUIRED_PERMISSIONS.all { permission ->
+            ContextCompat.checkSelfPermission(baseContext, permission) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun showPermissionDialog() {
+        ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (allPermissionsGranted()) {
+                startCamera()
+            }
+        }
+    }
+
+    private fun startCamera() {
+        if (cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA) {
+            previewView.scaleX = -1f
+        } else {
+            previewView.scaleX = 1f
+        }
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            imageCapture = ImageCapture.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .build()
+
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+            try {
+                cameraProvider.unbindAll()
+
+                cameraProvider.bindToLifecycle(
+                    this,
+                    cameraSelector,
+                    preview,
+                    imageCapture
+                )
+            } catch (exc: Exception) {
+                showToast(this, getString(R.string.failed_camera))
+            }
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun sendStory() {
+        if (currentImageUri == null) {
+            showToast(this@AddStoryActivity, getString(R.string.image_required))
+            return
+        }
+
+        val imageFile = uriToFile(currentImageUri!!, this).compressImageSize()
+        var description = edAddDescription.text.toString()
+
+        if (description.isEmpty()) {
+            showToast(this@AddStoryActivity, getString(R.string.description_required))
+            return
+        }
+
+        val requestBodyDescription = RequestBody.create("text/plain".toMediaTypeOrNull(), description)
+
+        val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), imageFile)
+        val photoPart = MultipartBody.Part.createFormData("photo", imageFile.name, requestFile)
+
+        postStory(requestBodyDescription, photoPart)
+
+        observeLoading()
+        observeUploadResponse()
+        observeError()
+    }
+
+    private fun observeLoading(){
+        storyViewModel.isLoading.observe(this) { isLoading ->
+            if (isLoading) {
+                progressBar.visibility = android.view.View.VISIBLE
+            } else {
+                progressBar.visibility = android.view.View.GONE
+            }
+        }
+    }
+
+    private fun observeUploadResponse(){
+        storyViewModel.uploadResponse.observe(this) { uploadResponse ->
+            if (uploadResponse != null && !isToastShown) {
+                showToast(this, getString(R.string.post_success))
+                isToastShown = true
+                storyViewModel.clearError()
+                finish()
+            }
+        }
+    }
+
+    private fun postStory(requestBodyDescription: RequestBody, photoPart: MultipartBody.Part){
+        storyViewModel.postAddStory(token, requestBodyDescription, photoPart)
+    }
+
+    private fun observeError(){
+        storyViewModel.error.observe(this) { error ->
+            if (error != null) {
+                showToast(this, getString(R.string.post_failed))
+                storyViewModel.clearError()
+            }
+        }
+    }
+
+    private fun flipCamera(){
+        if(!isFrontCamera){
+            cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            isFrontCamera = true
+            startCamera()
+        } else {
+            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            isFrontCamera = false
+            startCamera()
+        }
+    }
+
+    private fun takePhoto() {
+        if (!::imageCapture.isInitialized) {
+            return showToast(this, getString(R.string.camera_not_ready))
+        }
+
+        val photoFile = createCustomTempFile(application)
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    currentImageUri = output.savedUri
+
+                    val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+
+                    val rotatedBitmap = rotateImageIfRequired(bitmap, currentImageUri!!)
+
+                    val rotatedFile = createCustomTempFile(application)
+                    val outputStream = FileOutputStream(rotatedFile)
+                    rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    outputStream.flush()
+                    outputStream.close()
+
+                    imagePreview.setImageURI(currentImageUri)
+                    cameraXContainer.visibility = ConstraintLayout.GONE
+                    addStoryContainer.visibility = ConstraintLayout.VISIBLE
+
+                    currentImageUri = Uri.fromFile(rotatedFile)
+                }
+
+                override fun onError(exc: ImageCaptureException) {
+                    showToast(this@AddStoryActivity, getString(R.string.take_picture_failed))
+                }
+            }
+        )
+    }
+
+    private fun openGallery() {
+        Log.d("AddStoryActivity", "Opening gallery")
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+        }
+        launcherGallery.launch(intent)
+    }
+
+    private val launcherGallery = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri: Uri? = result.data?.data
+            uri?.let {
+                currentImageUri = it
+
+                imagePreview.post {
+                    imagePreview.setImageURI(it)
+                    cameraXContainer.visibility = ConstraintLayout.GONE
+                    addStoryContainer.visibility = ConstraintLayout.VISIBLE
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hideSystemUI()
+        startCamera()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+}
