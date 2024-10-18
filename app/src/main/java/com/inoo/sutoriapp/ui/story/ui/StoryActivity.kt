@@ -19,6 +19,7 @@ import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
 import com.inoo.sutoriapp.data.pref.dataStore
 import com.inoo.sutoriapp.databinding.ActivityStoryBinding
 import com.inoo.sutoriapp.ui.MainActivity
+import com.inoo.sutoriapp.ui.maps.MapsActivity
 import com.inoo.sutoriapp.ui.story.ui.addstory.AddStoryActivity
 import com.inoo.sutoriapp.utils.Utils.showToast
 
@@ -76,6 +77,11 @@ class StoryActivity : AppCompatActivity() {
                 if (navController.currentDestination?.id != R.id.settingsFragment) {
                     navController.navigate(R.id.action_listStoryFragment_to_settingsFragment)
                 }
+                true
+            }
+            R.id.action_maps -> {
+                val intent = Intent(this, MapsActivity::class.java)
+                startActivity(intent)
                 true
             }
             else -> super.onOptionsItemSelected(item)

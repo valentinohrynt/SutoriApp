@@ -1,4 +1,4 @@
-package com.inoo.sutoriapp.ui.auth
+package com.inoo.sutoriapp.ui.auth.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -49,7 +49,7 @@ class LoginFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var overlay: FrameLayout
 
-    private val authViewModel: AuthViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
     private val sessionViewModel: SessionViewModel by viewModels {
         SessionViewModelFactory.getInstance(requireContext(), pref)
     }
@@ -166,7 +166,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun observeLoading() {
-        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+        loginViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
                 overlay.visibility = View.VISIBLE
                 progressBar.visibility = View.VISIBLE
@@ -189,16 +189,16 @@ class LoginFragment : Fragment() {
     }
 
     private fun observeError() {
-        authViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+        loginViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             if (errorMessage != null) {
                 if (errorMessage === "Unauthorized") {
                     showToast(requireContext(), getString(R.string.login_failed))
                     setLoginButtonEnable()
-                    authViewModel.clearError()
+                    loginViewModel.clearError()
                 } else {
                     showToast(requireContext(), getString(R.string.login_failed_no_internet))
                     setLoginButtonEnable()
-                    authViewModel.clearError()
+                    loginViewModel.clearError()
                 }
             }
         }
@@ -206,9 +206,9 @@ class LoginFragment : Fragment() {
 
     private fun handleLogin(email: String, password: String) {
         setLoginButtonDisable()
-        authViewModel.handleLoginResult(email, password)
+        loginViewModel.handleLoginResult(email, password)
 
-        authViewModel.loginResponse.observe(viewLifecycleOwner) { loginResponse ->
+        loginViewModel.loginResponse.observe(viewLifecycleOwner) { loginResponse ->
             if (loginResponse != null ) {
                 val token = loginResponse.loginResult?.token
                 val name = loginResponse.loginResult?.name

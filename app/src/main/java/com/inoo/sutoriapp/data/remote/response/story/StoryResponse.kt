@@ -1,5 +1,7 @@
 package com.inoo.sutoriapp.data.remote.response.story
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 data class AddStoryResponse(
@@ -23,6 +25,19 @@ data class GetAllStoriesResponse(
 	val message: String? = null
 )
 
+data class DetailStoryResponse(
+
+	@field:SerializedName("error")
+	val error: Boolean? = null,
+
+	@field:SerializedName("message")
+	val message: String? = null,
+
+	@field:SerializedName("story")
+	val story: ListStoryItem? = null
+)
+
+@Entity(tableName = "story")
 data class ListStoryItem(
 
 	@field:SerializedName("photoUrl")
@@ -38,23 +53,13 @@ data class ListStoryItem(
 	val description: String? = null,
 
 	@field:SerializedName("lon")
-	val lon: Any? = null,
+	val lon: Double? = null,
 
+	@PrimaryKey
 	@field:SerializedName("id")
-	val id: String? = null,
+	val id: String,
 
 	@field:SerializedName("lat")
-	val lat: Any? = null
+	val lat: Double? = null
 )
 
-data class DetailStoryResponse(
-
-	@field:SerializedName("error")
-	val error: Boolean? = null,
-
-	@field:SerializedName("message")
-	val message: String? = null,
-
-	@field:SerializedName("story")
-	val story: ListStoryItem? = null
-)

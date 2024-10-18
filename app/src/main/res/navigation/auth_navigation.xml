@@ -6,7 +6,7 @@
     app:startDestination="@id/loginFragment">
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.inoo.sutoriapp.ui.auth.LoginFragment"
+        android:name="com.inoo.sutoriapp.ui.auth.login.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
-        android:name="com.inoo.sutoriapp.ui.auth.RegisterFragment"
+        android:name="com.inoo.sutoriapp.ui.auth.register.RegisterFragment"
         android:label="fragment_register"
         tools:layout="@layout/fragment_register" >
         <action

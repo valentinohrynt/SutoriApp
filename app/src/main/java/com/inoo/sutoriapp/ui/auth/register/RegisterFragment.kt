@@ -1,4 +1,4 @@
-package com.inoo.sutoriapp.ui.auth
+package com.inoo.sutoriapp.ui.auth.register
 
 import android.os.Bundle
 import android.text.Editable
@@ -39,7 +39,7 @@ class RegisterFragment : Fragment() {
     private lateinit var loginSpan: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var overlay: FrameLayout
-    private val authViewModel: AuthViewModel by viewModels()
+    private val registerViewModel: RegisterViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -152,7 +152,7 @@ class RegisterFragment : Fragment() {
     }
 
     private fun observeLoading() {
-        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+        registerViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
                 overlay.visibility = View.VISIBLE
                 progressBar.visibility = View.VISIBLE
@@ -175,17 +175,17 @@ class RegisterFragment : Fragment() {
     }
 
     private fun observeError() {
-        authViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+        registerViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             if (errorMessage != null) {
                 if (errorMessage == "emailTaken") {
                     showToast(requireContext(), getString(R.string.email_taken))
                     setRegisterButtonEnable()
-                    authViewModel.clearError()
+                    registerViewModel.clearError()
                 }
                 else {
                     showToast(requireContext(), getString(R.string.register_failed_no_internet))
                     setRegisterButtonEnable()
-                    authViewModel.clearError()
+                    registerViewModel.clearError()
                 }
             }
         }
@@ -193,9 +193,9 @@ class RegisterFragment : Fragment() {
 
     private fun handleRegister(name: String, email: String, password: String) {
         setRegisterButtonDisable()
-        authViewModel.handleRegisterResult(name, email, password)
+        registerViewModel.handleRegisterResult(name, email, password)
 
-        authViewModel.registerResponse.observe(viewLifecycleOwner) { registerResponse ->
+        registerViewModel.registerResponse.observe(viewLifecycleOwner) { registerResponse ->
             if (registerResponse != null) {
                 val message = registerResponse.message
                 if (message != null && !isToastShown) {

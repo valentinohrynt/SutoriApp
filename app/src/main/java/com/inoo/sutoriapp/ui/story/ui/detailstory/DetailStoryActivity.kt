@@ -15,16 +15,18 @@ import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
 import com.inoo.sutoriapp.data.pref.SessionViewModel
 import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
 import com.inoo.sutoriapp.data.pref.dataStore
+import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.databinding.ActivityDetailStoryBinding
 import com.inoo.sutoriapp.ui.customview.CustomButton
-import com.inoo.sutoriapp.ui.story.ui.StoryViewModel
 
 @Suppress("DEPRECATION")
 class DetailStoryActivity : AppCompatActivity() {
     private var _binding: ActivityDetailStoryBinding? = null
     private val binding get() = _binding!!
 
-    private val storyViewModel: StoryViewModel by viewModels()
+    private val detailStoryViewModel: DetailStoryViewModel by viewModels {
+        DetailStoryViewModelFactory(intent.getStringExtra(EXTRA_STORY_ID) ?: "")
+    }
     private val sessionViewModel: SessionViewModel by viewModels{
         SessionViewModelFactory.getInstance(this, pref)
     }
@@ -61,7 +63,7 @@ class DetailStoryActivity : AppCompatActivity() {
 
         retryButton.text = getString(R.string.retry)
 
-        storyId = intent.getStringExtra("storyId") ?: ""
+        storyId = intent.getStringExtra(EXTRA_STORY_ID).toString()
 
         backButton.setOnClickListener {
             onBackPressed()
@@ -70,8 +72,11 @@ class DetailStoryActivity : AppCompatActivity() {
 
         sessionViewModel.getToken().observe(this) { token ->
             this.token = token
-            setupView()
+            if (savedInstanceState == null) {
+                fetchStoryDetail(token)
+            }
         }
+        setupView()
     }
 
     private fun setupView(){
@@ -80,44 +85,49 @@ class DetailStoryActivity : AppCompatActivity() {
         observeStoryDetail()
         observeError()
         observeLoading()
-        fetchStoryDetail(token, storyId)
     }
 
-    private fun fetchStoryDetail(token: String, id: String){
-        storyViewModel.fetchStoryDetail(token, id)
+    private fun fetchStoryDetail(token: String){
+        detailStoryViewModel.fetchStoryDetail(token)
     }
 
     private fun observeStoryDetail(){
-        storyViewModel.story.observe(this) { story ->
+        detailStoryViewModel.story.observe(this) { story ->
             if (story != null) {
-                nameTextView.text = story.name
-                descriptionTextView.text = story.description
-
-                Glide.with(this)
-                    .load(story.photoUrl)
-                    .into(photoImageView)
-            }
-            else {
+                updateUI(story)
+            } else {
                 errorContainer.visibility = View.VISIBLE
                 progressBar.visibility = View.GONE
 
                 retryButton.setOnClickListener {
-                    fetchStoryDetail(token, storyId)
+                    fetchStoryDetail(token)
                     errorContainer.visibility = View.GONE
                 }
             }
         }
     }
 
+    private fun updateUI(story: ListStoryItem) {
+        nameTextView.text = story.name
+        descriptionTextView.text = story.description
+
+        Glide.with(this)
+            .load(story.photoUrl)
+            .into(photoImageView)
+
+        errorContainer.visibility = View.GONE
+        progressBar.visibility = View.GONE
+    }
+
     private fun observeError(){
-        storyViewModel.error.observe(this) { errorMessage ->
+        detailStoryViewModel.error.observe(this) { errorMessage ->
             if (errorMessage != null) {
                 errorTextView.text = getString(R.string.fetch_story_failed)
                 errorContainer.visibility = View.VISIBLE
                 progressBar.visibility = View.GONE
 
                 retryButton.setOnClickListener {
-                    fetchStoryDetail(token, storyId)
+                    fetchStoryDetail(token)
                     errorContainer.visibility = View.GONE
                 }
             }
@@ -125,7 +135,7 @@ class DetailStoryActivity : AppCompatActivity() {
     }
 
     private fun observeLoading(){
-        storyViewModel.isLoading.observe(this) { isLoading ->
+        detailStoryViewModel.isLoading.observe(this) { isLoading ->
             if (isLoading) {
                 progressBar.visibility = View.VISIBLE
             } else {
@@ -137,5 +147,9 @@ class DetailStoryActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+    companion object {
+        const val EXTRA_STORY_ID = "extra_story_id"
     }
 }

@@ -1,15 +1,16 @@
-package com.inoo.sutoriapp.data.remote.retrofit
+package com.inoo.sutoriapp.data.remote.retrofit.auth
 
+import com.inoo.sutoriapp.BuildConfig
+import com.inoo.sutoriapp.data.remote.retrofit.story.StoryApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import com.inoo.sutoriapp.BuildConfig
 import retrofit2.converter.gson.GsonConverterFactory
 
-class ApiConfig {
+class AuthApiConfig {
     companion object {
         private const val BASE_URL: String = BuildConfig.BASE_URL
-        fun getApiService(): ApiService {
+        fun getApiService(): AuthApiService {
             val loggingInterceptor =
                 HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
             val client = OkHttpClient.Builder()
@@ -20,7 +21,7 @@ class ApiConfig {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build()
-            return retrofit.create(ApiService::class.java)
+            return retrofit.create(AuthApiService::class.java)
         }
     }
 }

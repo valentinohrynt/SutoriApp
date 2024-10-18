@@ -26,6 +26,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SutoriApp"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
+        <activity
+            android:name=".ui.maps.MapsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_maps" />
+
         <receiver
             android:name=".widget.ListStoryWidget"
             android:exported="false">
@@ -52,7 +61,7 @@
             android:name=".ui.story.ui.addstory.AddStoryActivity"
             android:exported="false"
             android:resizeableActivity="true"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.story.ui.detailstory.DetailStoryActivity"
             android:exported="false" />
@@ -62,9 +71,9 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.App.SplashScreen"
             android:resizeableActivity="true"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.App.SplashScreen"
             android:windowSoftInputMode="adjustPan"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
@@ -73,8 +82,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
-            android:name="com.inoo.sutoriapp.widget.StackWidgetService"
+            android:name=".widget.StackWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 

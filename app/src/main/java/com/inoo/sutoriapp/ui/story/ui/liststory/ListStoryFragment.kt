@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,22 +24,13 @@ import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.databinding.FragmentListStoryBinding
 import com.inoo.sutoriapp.ui.customview.CustomButton
 import com.inoo.sutoriapp.ui.story.adapter.ListItemAdapter
-import com.inoo.sutoriapp.ui.story.ui.StoryViewModel
+import com.inoo.sutoriapp.ui.story.adapter.LoadingStateAdapter
 import com.inoo.sutoriapp.utils.Utils.showToast
 import java.util.Stack
 
 class ListStoryFragment : Fragment() {
     private var _binding: FragmentListStoryBinding? = null
     private val binding get() = _binding!!
-
-    private var currentPage = 1
-    private val pageSize = 10
-    private val location = 0
-    private var isLoadingMoreStories = false
-    private var allPagesLoaded = false
-    private var isInitialLoad = true
-    private var isSessionInitialized = false
-    private var needsRefresh = false
 
     private lateinit var pref : SutoriAppPreferences
     private var token: String? = null
@@ -52,7 +44,7 @@ class ListStoryFragment : Fragment() {
     private lateinit var storyRecyclerView: RecyclerView
     private lateinit var storyAdapter: ListItemAdapter
 
-    private val storyViewModel: StoryViewModel by viewModels()
+    private lateinit var listStoryViewModel: ListStoryViewModel
     private val sessionViewModel: SessionViewModel by viewModels{
         SessionViewModelFactory.getInstance(requireContext(), pref)
     }
@@ -72,13 +64,6 @@ class ListStoryFragment : Fragment() {
 
         initializeVariables()
         setupViews()
-        setupObservers()
-        setupScrollListener()
-
-        if (isInitialLoad) {
-            fetchStories()
-            isInitialLoad = false
-        }
     }
 
     private fun initializeVariables() {
@@ -87,27 +72,16 @@ class ListStoryFragment : Fragment() {
 
         sessionViewModel.getToken().observe(viewLifecycleOwner) { token ->
             this.token = token
-            checkSessionInitialization()
+            if (token != null) {
+                listStoryViewModel = ViewModelProvider(this@ListStoryFragment, ViewModelFactory(requireContext(), token))[ListStoryViewModel::class.java]
+                getData()
+            }
         }
 
         sessionViewModel.getName().observe(viewLifecycleOwner) { name ->
             this.username = name
-            checkSessionInitialization()
+            setupViews()
         }
-    }
-
-    private fun checkSessionInitialization() {
-        if (token != null && username != null) {
-            isSessionInitialized = true
-            onSessionInitialized()
-        }
-    }
-
-    private fun onSessionInitialized() {
-        if (isSessionInitialized) {
-            fetchStories()
-        }
-        setupViews()
     }
 
     private fun setupViews() {
@@ -123,145 +97,26 @@ class ListStoryFragment : Fragment() {
 
         storyRecyclerView.layoutManager = GridLayoutManager(requireContext(), 1)
         storyRecyclerView.setHasFixedSize(true)
-        storyAdapter = ListItemAdapter()
-        storyRecyclerView.adapter = storyAdapter
+
         storyRecyclerView.itemAnimator = DefaultItemAnimator()
 
         swipeRefreshLayout.setOnRefreshListener {
-
-            refreshStories()
+            getData()
         }
     }
 
-    private fun setupObservers() {
-        observeLoading()
-        observeError()
-        observeStories()
-    }
-
-    private fun observeLoading() {
-        storyViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            if (isLoading) {
-                progressBar.visibility = View.VISIBLE
-                swipeRefreshLayout.isRefreshing = false
-            } else {
-                progressBar.visibility = View.GONE
-                swipeRefreshLayout.isRefreshing = false
+    private fun getData() {
+        storyAdapter = ListItemAdapter()
+        storyRecyclerView.adapter = storyAdapter.withLoadStateFooter(
+            footer = LoadingStateAdapter {
+                storyAdapter.retry()
             }
+        )
+
+        listStoryViewModel.listStory.observe(viewLifecycleOwner) { pagingData ->
+            swipeRefreshLayout.isRefreshing = false
+            storyAdapter.submitData(lifecycle, pagingData)
         }
-    }
-
-    private fun observeError() {
-        storyViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
-            if (errorMessage != null) {
-                errorContainer.visibility = View.VISIBLE
-                tvErrorMsg.text = getString(R.string.fetch_story_failed)
-                btnRetry.setOnClickListener {
-                    errorContainer.visibility = View.GONE
-                    storyViewModel.clearError()
-                    fetchStories()
-                }
-            } else {
-                errorContainer.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun observeStories() {
-        storyViewModel.storyList.observe(viewLifecycleOwner) { storyList ->
-            if (storyList != null) {
-                if (storyList.isEmpty() && !allPagesLoaded) {
-                    allPagesLoaded = true
-                    showToast(requireContext(), getString(R.string.no_more_page))
-                } else if (storyList.isEmpty()){
-                    errorContainer.visibility = View.VISIBLE
-                    tvErrorMsg.text = getString(R.string.no_story)
-                    btnRetry.setOnClickListener {
-                        errorContainer.visibility = View.GONE
-                        fetchStories()
-                    }
-                }
-                else {
-                    if (currentPage == 1) {
-                        storyAdapter.setStories(storyList)
-                    } else {
-                        storyAdapter.addStories(storyList)
-                    }
-                    isLoadingMoreStories = false
-                }
-            }
-        }
-    }
-
-    private fun fetchStories() {
-        token?.let { storyViewModel.fetchStories(it, currentPage, pageSize, location) }
-    }
-
-    private fun setupScrollListener() {
-        storyRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-
-                val layoutManager = storyRecyclerView.layoutManager as GridLayoutManager
-                val visibleItemCount = layoutManager.childCount
-                val totalItemCount = layoutManager.itemCount
-                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
-
-                if (dy > 0 && !isLoadingMoreStories && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 1) {
-                    loadMoreStories()
-                }
-
-                if (dy < 0 && firstVisibleItemPosition == 0 && !isLoadingMoreStories) {
-                    goBackToPreviousPage()
-                }
-            }
-        })
-    }
-
-    private fun refreshStories(){
-        errorContainer.visibility = View.GONE
-        storyViewModel.clearError()
-        currentPage = 1
-        previousPages.clear()
-        storyAdapter.setStories(emptyList())
-        fetchStories()
-    }
-
-    private fun loadMoreStories() {
-        if (allPagesLoaded || isLoadingMoreStories) return
-
-        isLoadingMoreStories = true
-        currentPage++
-        fetchStories()
-    }
-
-    private fun goBackToPreviousPage() {
-        if (previousPages.isNotEmpty()) {
-            val previousStories = previousPages.pop()
-            storyAdapter.setStories(previousStories)
-            currentPage--
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        allPagesLoaded = false
-        isLoadingMoreStories = false
-        if (needsRefresh) {
-            previousPages.clear()
-            storyAdapter.setStories(emptyList())
-            allPagesLoaded = false
-            isLoadingMoreStories = false
-            currentPage = 1
-            fetchStories()
-            setupScrollListener()
-            needsRefresh = false
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        needsRefresh = true
     }
 
     override fun onDestroyView() {

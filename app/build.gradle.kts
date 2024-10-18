@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("androidx.navigation.safeargs")
     id("com.google.devtools.ksp") version "2.0.20-1.0.24"
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
 android {
@@ -38,6 +39,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
     }
     buildFeatures {
         viewBinding = true
@@ -58,9 +60,15 @@ dependencies {
 
     implementation (libs.androidx.room.runtime)
     implementation (libs.androidx.room.ktx)
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.room.paging)
+
     implementation (libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.paging.runtime.ktx)
     ksp(libs.androidx.room.compiler)
 
     implementation (libs.androidx.core.ktx)
@@ -82,17 +90,21 @@ dependencies {
 
     implementation (libs.androidx.datastore.preferences)
 
-    implementation ("androidx.camera:camera-core:1.3.4")
-    implementation ("androidx.camera:camera-camera2:1.3.4")
-    implementation ("androidx.camera:camera-lifecycle:1.3.4")
-    implementation ("androidx.camera:camera-view:1.3.4")
-    implementation ("androidx.camera:camera-extensions:1.3.4")
+    implementation (libs.androidx.camera.core)
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
+    implementation (libs.androidx.camera.extensions)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.play.services.maps)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-
+    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
     testImplementation (libs.junit)
     androidTestImplementation (libs.androidx.junit)
     androidTestImplementation (libs.androidx.espresso.core)
-
-
 }
