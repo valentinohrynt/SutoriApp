@@ -59,7 +59,6 @@
     <string name="logout_process">Logging out…</string>
     <string name="description_required">Description cannot be empty.</string>
     <string name="title_activity_maps">MapsActivity</string>
-    <string name="api_key">AIzaSyCMhXd8cA7NFtimsUSdk2tAp0ruX9XqgDk</string>
     <string name="maps">Maps</string>
     <string name="location_permission_denied">Location permission denied.</string>
     <string name="your_location">You are here!</string>
