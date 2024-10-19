@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,13 +15,9 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.fragment.app.viewModels
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -54,7 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var location: Int = 1
 
     private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(this, pref)
+        SessionViewModelFactory.getInstance(pref)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +80,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun setupView(token: String) {
         mapsViewModel.fetchStoriesWithLocation(token, location)
         observeStories()
+        observeLoading()
+        observeError()
     }
 
     private fun observeStories() {
@@ -166,19 +163,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun getMyLocation(){
         if (ContextCompat.checkSelfPermission(
                 this.applicationContext,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED) {
             mMap.isMyLocationEnabled = true
         } else {
-            requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
     private fun vectorToBitmap(@DrawableRes id: Int, @ColorInt color: Int): BitmapDescriptor {
         val vectorDrawable = ResourcesCompat.getDrawable(resources, id, null)
-        if (vectorDrawable == null) {
-            return BitmapDescriptorFactory.defaultMarker()
-        }
+            ?: return BitmapDescriptorFactory.defaultMarker()
         val bitmap = Bitmap.createBitmap(
             vectorDrawable.intrinsicWidth,
             vectorDrawable.intrinsicHeight,

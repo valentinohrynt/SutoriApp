@@ -18,4 +18,6 @@ class SettingsViewModel(private val pref: SutoriAppPreferences) : ViewModel() {
             pref.saveLanguageSetting(language)
         }
     }
+
+
 }

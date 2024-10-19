@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import com.inoo.sutoriapp.R
 import com.inoo.sutoriapp.ui.story.ui.detailstory.DetailStoryActivity
 
+@Suppress("DEPRECATION")
 class ListStoryWidget : AppWidgetProvider() {
 
     companion object {

@@ -15,7 +15,7 @@ class PasswordEditText @JvmOverloads constructor(
 ) : AppCompatEditText(context, attrs), View.OnTouchListener {
 
     private var clearButtonImage: Drawable = ContextCompat.getDrawable(context, R.drawable.ic_close) as Drawable
-    private val MIN_PASSWORD_LENGTH = 8
+    private val minimalPasswordLength = 8
 
     init {
         setPaddingRelative(40, 20, 60, 20)
@@ -33,10 +33,10 @@ class PasswordEditText @JvmOverloads constructor(
     }
 
     private fun validatePassword(password: String) {
-        if (password.length < MIN_PASSWORD_LENGTH) {
-            error = context.getString(R.string.password_error)
+        error = if (password.length < minimalPasswordLength) {
+            context.getString(R.string.password_error)
         } else {
-            error = null
+            null
         }
     }
 

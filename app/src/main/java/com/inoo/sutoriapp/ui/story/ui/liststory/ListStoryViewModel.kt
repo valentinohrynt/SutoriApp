@@ -2,7 +2,6 @@ package com.inoo.sutoriapp.ui.story.ui.liststory
 
 import android.content.Context
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,8 +10,6 @@ import androidx.paging.cachedIn
 import com.inoo.sutoriapp.data.di.Injection
 import com.inoo.sutoriapp.data.local.StoryRepository
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
-import com.inoo.sutoriapp.data.remote.retrofit.story.StoryApiConfig
-import kotlinx.coroutines.launch
 
 class ListStoryViewModel(storyRepository: StoryRepository) : ViewModel() {
     val listStory : LiveData<PagingData<ListStoryItem>> = storyRepository.getStory().cachedIn(viewModelScope)

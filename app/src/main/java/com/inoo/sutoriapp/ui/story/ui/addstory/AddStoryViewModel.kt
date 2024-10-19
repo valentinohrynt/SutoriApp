@@ -1,6 +1,5 @@
 package com.inoo.sutoriapp.ui.story.ui.addstory
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,8 +19,6 @@ class AddStoryViewModel : ViewModel() {
 
     private val _error = MutableLiveData<String?>()
     val error: MutableLiveData<String?> get() = _error
-
-    private lateinit var headerAuthToken: String
 
     fun postAddStory(token: String, description: RequestBody, photo: MultipartBody.Part, lat: RequestBody, long: RequestBody) {
         _isLoading.value = true

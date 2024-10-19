@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var pref: SutoriAppPreferences
     private val settingsViewModel: SettingsViewModel by viewModels {
-        SettingsViewModelFactory.getInstance(this, pref)
+        SettingsViewModelFactory.getInstance(pref)
     }
 
     private lateinit var language:String
@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
     }
 
+    @SuppressLint("AppBundleLocaleChanges")
     private fun updateLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)

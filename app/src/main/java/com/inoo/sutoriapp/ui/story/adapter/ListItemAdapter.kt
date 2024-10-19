@@ -5,19 +5,14 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.app.Activity
-import android.app.LauncherActivity.ListItem
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.Lifecycle
-import androidx.paging.PagingData
 import androidx.paging.PagingDataAdapter
-import androidx.paging.map
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.inoo.sutoriapp.R
@@ -40,7 +35,7 @@ class ListItemAdapter : PagingDataAdapter<ListStoryItem, ListItemAdapter.ViewHol
         }
     }
 
-    inner class ViewHolder(private val binding: ItemListBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(binding: ItemListBinding) : RecyclerView.ViewHolder(binding.root) {
         private val view = binding.root
         private val context = view.context
         private val photoImageView: ImageView = binding.ivItemPhoto

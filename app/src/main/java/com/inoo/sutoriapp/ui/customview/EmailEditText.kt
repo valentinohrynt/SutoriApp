@@ -33,10 +33,10 @@ class EmailEditText @JvmOverloads constructor(
     }
 
     private fun validateEmail(email: String) {
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            error = context.getString(R.string.email_error)
+        error = if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            context.getString(R.string.email_error)
         } else {
-            error = null
+            null
         }
     }
 

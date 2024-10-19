@@ -1,5 +1,6 @@
 package com.inoo.sutoriapp.ui.auth.login
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -32,6 +33,7 @@ import com.inoo.sutoriapp.ui.customview.EmailEditText
 import com.inoo.sutoriapp.ui.customview.PasswordEditText
 import com.inoo.sutoriapp.ui.story.ui.StoryActivity
 import com.inoo.sutoriapp.utils.Utils.showToast
+import com.inoo.sutoriapp.utils.EspressoIdlingResource.idlingResource
 
 class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
@@ -51,7 +53,7 @@ class LoginFragment : Fragment() {
 
     private val loginViewModel: LoginViewModel by viewModels()
     private val sessionViewModel: SessionViewModel by viewModels {
-        SessionViewModelFactory.getInstance(requireContext(), pref)
+        SessionViewModelFactory.getInstance(pref)
     }
 
     override fun onCreateView(
@@ -192,10 +194,12 @@ class LoginFragment : Fragment() {
         loginViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             if (errorMessage != null) {
                 if (errorMessage === "Unauthorized") {
+                    idlingResource.decrement()
                     showToast(requireContext(), getString(R.string.login_failed))
                     setLoginButtonEnable()
                     loginViewModel.clearError()
                 } else {
+                    idlingResource.decrement()
                     showToast(requireContext(), getString(R.string.login_failed_no_internet))
                     setLoginButtonEnable()
                     loginViewModel.clearError()
@@ -205,6 +209,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun handleLogin(email: String, password: String) {
+        idlingResource.increment()
         setLoginButtonDisable()
         loginViewModel.handleLoginResult(email, password)
 
@@ -213,16 +218,18 @@ class LoginFragment : Fragment() {
                 val token = loginResponse.loginResult?.token
                 val name = loginResponse.loginResult?.name
                 if (token != null && name!=null && !isToastShown) {
-                    Log.d("LoginFragment", "TokenAA: $token")
-                    Log.d("LoginFragment", "NameAA: $name")
                     sessionViewModel.saveSession(token, name)
+                    val widgetSharedPrefences = requireContext().getSharedPreferences("SutoriAppWidgetSharedPreferences", Context.MODE_PRIVATE)
+                    widgetSharedPrefences.edit().putString("token", token).apply()
                     showToast(requireContext(), getString(R.string.login_success))
                     isToastShown = true
+                    idlingResource.decrement()
                     val intent = Intent(requireContext(), StoryActivity::class.java)
                     startActivity(intent)
                     requireActivity().finish()
                 }
             } else {
+                idlingResource.decrement()
                 showToast(requireContext(), getString(R.string.login_failed))
                 setLoginButtonEnable()
             }

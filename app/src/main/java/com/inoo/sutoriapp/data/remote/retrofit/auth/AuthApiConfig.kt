@@ -1,7 +1,6 @@
 package com.inoo.sutoriapp.data.remote.retrofit.auth
 
 import com.inoo.sutoriapp.BuildConfig
-import com.inoo.sutoriapp.data.remote.retrofit.story.StoryApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,7 +11,7 @@ class AuthApiConfig {
         private const val BASE_URL: String = BuildConfig.BASE_URL
         fun getApiService(): AuthApiService {
             val loggingInterceptor =
-                HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
             val client = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
                 .build()

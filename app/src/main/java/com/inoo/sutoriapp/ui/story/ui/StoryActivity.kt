@@ -21,6 +21,7 @@ import com.inoo.sutoriapp.databinding.ActivityStoryBinding
 import com.inoo.sutoriapp.ui.MainActivity
 import com.inoo.sutoriapp.ui.maps.MapsActivity
 import com.inoo.sutoriapp.ui.story.ui.addstory.AddStoryActivity
+import com.inoo.sutoriapp.utils.EspressoIdlingResource.idlingResource
 import com.inoo.sutoriapp.utils.Utils.showToast
 
 class StoryActivity : AppCompatActivity() {
@@ -33,7 +34,7 @@ class StoryActivity : AppCompatActivity() {
     private lateinit var pref: SutoriAppPreferences
 
     private val sessionViewModel: SessionViewModel by viewModels {
-        SessionViewModelFactory.getInstance(this, pref)
+        SessionViewModelFactory.getInstance(pref)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,12 +119,14 @@ class StoryActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
+        idlingResource.increment()
         showToast(this, getString(R.string.logout_process))
         sessionViewModel.logout()
 
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
+        idlingResource.decrement()
     }
 
 }

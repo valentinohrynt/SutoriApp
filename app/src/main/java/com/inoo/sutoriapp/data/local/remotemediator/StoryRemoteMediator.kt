@@ -55,7 +55,7 @@ class StoryRemoteMediator(
                 val prevKey = if (page == INITIAL_PAGE_INDEX) null else page - 1
                 val nextKey = if (endOfPaginationReached) null else page + 1
                 val keys = responseData.map {
-                    RemoteKeys(storyId = it.id!!, prevKey = prevKey, nextKey = nextKey)
+                    RemoteKeys(storyId = it.id, prevKey = prevKey, nextKey = nextKey)
                 }
                 database.remoteKeysDao().insertAll(keys)
                 database.storyDao().insertAll(responseData)
@@ -68,12 +68,12 @@ class StoryRemoteMediator(
 
     private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, ListStoryItem>): RemoteKeys? {
         return state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()?.let { data ->
-            data.id?.let { database.remoteKeysDao().getRemoteKeysId(it) }
+            data.id.let { database.remoteKeysDao().getRemoteKeysId(it) }
         }
     }
     private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, ListStoryItem>): RemoteKeys? {
         return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()?.let { data ->
-            data.id?.let { database.remoteKeysDao().getRemoteKeysId(it) }
+            data.id.let { database.remoteKeysDao().getRemoteKeysId(it) }
         }
     }
     private suspend fun getRemoteKeyClosestToCurrentPosition(state: PagingState<Int,ListStoryItem>): RemoteKeys? {

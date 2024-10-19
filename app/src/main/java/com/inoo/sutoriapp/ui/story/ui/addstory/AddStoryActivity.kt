@@ -51,12 +51,12 @@ class AddStoryActivity : AppCompatActivity() {
     private var _binding: ActivityAddStoryBinding? = null
     private val binding get() = _binding!!
 
-    private val REQUEST_CODE_PERMISSIONS = 10
-    private val REQUIRED_PERMISSIONS = arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+    private val requestCodePermission = 10
+    private val requiredPermissions = arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)
 
     private val addStoryViewModel: AddStoryViewModel by viewModels()
     private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(this, pref)
+        SessionViewModelFactory.getInstance(pref)
     }
     private lateinit var pref : SutoriAppPreferences
     private lateinit var token: String
@@ -171,18 +171,18 @@ class AddStoryActivity : AppCompatActivity() {
     }
 
     private fun allPermissionsGranted(): Boolean {
-        return REQUIRED_PERMISSIONS.all { permission ->
+        return requiredPermissions.all { permission ->
             ContextCompat.checkSelfPermission(baseContext, permission) == PackageManager.PERMISSION_GRANTED
         }
     }
 
     private fun showPermissionDialog() {
-        ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+        ActivityCompat.requestPermissions(this, requiredPermissions, requestCodePermission)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+        if (requestCode == requestCodePermission) {
             if (allPermissionsGranted()) {
                 startCamera()
             }
@@ -260,9 +260,9 @@ class AddStoryActivity : AppCompatActivity() {
     private fun observeLoading(){
         addStoryViewModel.isLoading.observe(this) { isLoading ->
             if (isLoading) {
-                progressBar.visibility = android.view.View.VISIBLE
+                progressBar.visibility = View.VISIBLE
             } else {
-                progressBar.visibility = android.view.View.GONE
+                progressBar.visibility = View.GONE
             }
         }
     }

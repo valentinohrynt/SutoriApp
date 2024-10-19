@@ -30,7 +30,7 @@ class SettingsFragment : Fragment() {
     private var isDialogShown = false
 
     private val settingsViewModel: SettingsViewModel by viewModels {
-        SettingsViewModelFactory.getInstance(requireContext(), pref)
+        SettingsViewModelFactory.getInstance(pref)
     }
 
     override fun onCreateView(

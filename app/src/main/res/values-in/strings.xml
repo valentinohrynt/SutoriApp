@@ -24,11 +24,8 @@
     <string name="email_error">Harap masukkan email yang valid (misal: name@example.com)</string>
     <string name="add_story">Tambah cerita baru</string>
     <string name="fetch_story_failed">Gagal mengambil cerita. Periksa jaringan internet Anda dan coba lagi.</string>
-    <string name="no_more_page">Tidak ada halaman lagi</string>
     <string name="retry">Coba lagi</string>
     <string name="image_preview">Pratinjau Gambar</string>
-    <string name="enter_description">Masukkan deskripsi</string>
-    <string name="post">Kirim</string>
     <string name="cancel">Batal</string>
     <string name="gallery">Galeri</string>
     <string name="capture">Ambil Gambar</string>
@@ -39,7 +36,6 @@
     <string name="camera_not_ready">Kamera belum siap, coba lagi</string>
     <string name="failed_camera">Gagal memulai kamera, coba lagi</string>
     <string name="take_picture_failed">Gagal mengambil gambar, coba lagi</string>
-    <string name="profile">Profil</string>
     <string name="logout">Keluar</string>
     <string name="settings">Pengaturan</string>
     <string name="logout_message">Apakah Anda yakin ingin keluar?</string>
@@ -47,16 +43,12 @@
     <string name="restart_required">Diperlukan Restart</string>
     <string name="restart_message">Anda perlu merestart aplikasi untuk menerapkan perubahan bahasa.</string>
     <string name="ok">OK</string>
-    <string name="no_story">Ups! Tidak ada cerita yang tersedia!</string>
     <string name="register_success">Registrasi berhasil! Anda akan diarahkan ke halaman login</string>
-    <string name="appwidget_text">SutoriApp</string>
-    <string name="add_widget">Tambahkan widget</string>
     <string name="app_widget_description">Widget untuk menampilkan cerita</string>
     <string name="no_stories_available">Tidak ada cerita yang tersedia</string>
     <string name="logout_process">Sedang logout…</string>
     <string name="description_required">Deskripsi tidak boleh kosong.</string>
     <string name="title_activity_maps">MapsActivity</string>
-    <string name="api_key">AIzaSyCMhXd8cA7NFtimsUSdk2tAp0ruX9XqgDk</string>
     <string name="maps">Peta</string>
     <string name="location_permission_denied">Izin lokasi ditolak</string>
     <string name="your_location">Kamu di sini!</string>

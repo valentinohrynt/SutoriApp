@@ -3,6 +3,7 @@ package com.inoo.sutoriapp.widget
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import androidx.lifecycle.ViewModelProvider
@@ -21,7 +22,7 @@ class StackRemoteViewsFactory(private val mContext: Context, private var widgetV
     private var location: Int = 0
 
     companion object {
-        const val PREFS_NAME = "SutoriAppPreferences"
+        const val PREFS_NAME = "SutoriAppWidgetSharedPreferences"
     }
 
     override fun onCreate() {
@@ -30,6 +31,7 @@ class StackRemoteViewsFactory(private val mContext: Context, private var widgetV
 
         val sharedPreferences = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         token = sharedPreferences.getString("token", null).toString()
+        Log.d("Widget", "Token: $token")
     }
 
     override fun onDataSetChanged() {

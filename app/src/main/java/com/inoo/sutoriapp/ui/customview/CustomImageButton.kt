@@ -2,7 +2,6 @@ package com.inoo.sutoriapp.ui.customview
 
 import android.animation.ObjectAnimator
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.PorterDuff
 import android.util.AttributeSet
 import android.view.View
@@ -62,9 +61,5 @@ class CustomImageButton : AppCompatImageButton {
         }
 
         drawable?.clearColorFilter()
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
     }
 }

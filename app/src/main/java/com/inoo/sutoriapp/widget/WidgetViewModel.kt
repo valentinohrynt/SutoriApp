@@ -8,7 +8,6 @@ import kotlinx.coroutines.withContext
 import java.lang.Exception
 
 class WidgetViewModel : ViewModel() {
-
     suspend fun fetchStories(token: String, page: Int, size: Int, location: Int): List<ListStoryItem>? {
         return withContext(viewModelScope.coroutineContext) {
             try {

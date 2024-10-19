@@ -20,13 +20,10 @@ import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
 import com.inoo.sutoriapp.data.pref.SessionViewModel
 import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
 import com.inoo.sutoriapp.data.pref.dataStore
-import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.databinding.FragmentListStoryBinding
 import com.inoo.sutoriapp.ui.customview.CustomButton
 import com.inoo.sutoriapp.ui.story.adapter.ListItemAdapter
 import com.inoo.sutoriapp.ui.story.adapter.LoadingStateAdapter
-import com.inoo.sutoriapp.utils.Utils.showToast
-import java.util.Stack
 
 class ListStoryFragment : Fragment() {
     private var _binding: FragmentListStoryBinding? = null
@@ -46,9 +43,8 @@ class ListStoryFragment : Fragment() {
 
     private lateinit var listStoryViewModel: ListStoryViewModel
     private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(requireContext(), pref)
+        SessionViewModelFactory.getInstance(pref)
     }
-    private val previousPages = Stack<List<ListStoryItem>>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -102,6 +98,7 @@ class ListStoryFragment : Fragment() {
 
         swipeRefreshLayout.setOnRefreshListener {
             getData()
+            storyAdapter.refresh()
         }
     }
 
@@ -116,9 +113,21 @@ class ListStoryFragment : Fragment() {
         listStoryViewModel.listStory.observe(viewLifecycleOwner) { pagingData ->
             swipeRefreshLayout.isRefreshing = false
             storyAdapter.submitData(lifecycle, pagingData)
+
+            storyRecyclerView.scrollToPosition(0)
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (token != null) {
+            listStoryViewModel = ViewModelProvider(this@ListStoryFragment, ViewModelFactory(requireContext(),
+                token!!
+            ))[ListStoryViewModel::class.java]
+            getData()
+            storyAdapter.refresh()
+        }
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

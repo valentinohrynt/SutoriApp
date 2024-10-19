@@ -5,6 +5,7 @@ import androidx.paging.PagingState
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.data.remote.retrofit.story.StoryApiService
 
+@Suppress("unused")
 class StoryPagingSource(private val apiService: StoryApiService) : PagingSource<Int, ListStoryItem>() {
     private companion object {
         const val INITIAL_PAGE_INDEX = 1

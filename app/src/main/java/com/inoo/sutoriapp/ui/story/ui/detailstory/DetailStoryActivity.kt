@@ -28,7 +28,7 @@ class DetailStoryActivity : AppCompatActivity() {
         DetailStoryViewModelFactory(intent.getStringExtra(EXTRA_STORY_ID) ?: "")
     }
     private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(this, pref)
+        SessionViewModelFactory.getInstance(pref)
     }
     private lateinit var pref: SutoriAppPreferences
     private lateinit var token: String

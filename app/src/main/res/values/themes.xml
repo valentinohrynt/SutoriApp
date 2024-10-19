@@ -51,15 +51,6 @@
 
     <style name="Theme.SutoriApp" parent="Base.Theme.SutoriApp" />
 
-    <style name="Theme.SutoriApp.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
-        <item name="appWidgetRadius">16dp</item>
-        <item name="appWidgetInnerRadius">16dp</item>
-    </style>
-
-    <style name="Theme.SutoriApp.AppWidgetContainer" parent="Theme.SutoriApp.AppWidgetContainerParent">
-        <item name="appWidgetPadding">16dp</item>
-    </style>
-
     <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/md_theme_secondaryContainer</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_sutori_splashscreen</item>

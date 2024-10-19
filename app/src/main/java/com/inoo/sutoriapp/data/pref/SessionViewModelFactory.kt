@@ -1,6 +1,5 @@
 package com.inoo.sutoriapp.data.pref
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import java.lang.IllegalArgumentException
@@ -19,7 +18,7 @@ class SessionViewModelFactory(
     companion object {
         @Volatile
         private var instance: SessionViewModelFactory? = null
-        fun getInstance(context: Context, pref: SutoriAppPreferences): SessionViewModelFactory =
+        fun getInstance(pref: SutoriAppPreferences): SessionViewModelFactory =
             instance ?: synchronized(this) {
                 instance ?: SessionViewModelFactory(pref)
             }.also { instance = it }

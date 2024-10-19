@@ -1,6 +1,5 @@
 package com.inoo.sutoriapp.data.pref
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.inoo.sutoriapp.ui.story.ui.settings.SettingsViewModel
@@ -20,7 +19,7 @@ class SettingsViewModelFactory(
     companion object {
         @Volatile
         private var instance: SettingsViewModelFactory? = null
-        fun getInstance(context: Context, pref: SutoriAppPreferences): SettingsViewModelFactory =
+        fun getInstance(pref: SutoriAppPreferences): SettingsViewModelFactory =
             instance ?: synchronized(this) {
                 instance ?: SettingsViewModelFactory(pref)
             }.also { instance = it }
