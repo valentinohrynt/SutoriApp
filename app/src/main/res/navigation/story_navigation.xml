@@ -18,7 +18,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.inoo.sutoriapp.ui.story.ui.settings.SettingsFragment"
+        android:name="com.inoo.sutoriapp.ui.settings.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
 </navigation>

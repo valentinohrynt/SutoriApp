@@ -10,7 +10,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.inoo.sutoriapp.R
 import com.inoo.sutoriapp.databinding.ActivityMainBinding
-import com.inoo.sutoriapp.ui.story.ui.settings.SettingsViewModel
+import com.inoo.sutoriapp.ui.settings.SettingsViewModel
 import com.inoo.sutoriapp.data.pref.SettingsViewModelFactory
 import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
 import com.inoo.sutoriapp.data.pref.dataStore

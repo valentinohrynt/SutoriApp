@@ -2,7 +2,7 @@ package com.inoo.sutoriapp.data.pref
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.inoo.sutoriapp.ui.story.ui.settings.SettingsViewModel
+import com.inoo.sutoriapp.ui.settings.SettingsViewModel
 import java.lang.IllegalArgumentException
 
 @Suppress("UNCHECKED_CAST")
