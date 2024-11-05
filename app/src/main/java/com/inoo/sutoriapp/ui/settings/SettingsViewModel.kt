@@ -1,4 +1,4 @@
-package com.inoo.sutoriapp.ui.story.ui.settings
+package com.inoo.sutoriapp.ui.settings
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

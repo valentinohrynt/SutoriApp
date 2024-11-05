@@ -31,7 +31,6 @@ class StackRemoteViewsFactory(private val mContext: Context, private var widgetV
 
         val sharedPreferences = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         token = sharedPreferences.getString("token", null).toString()
-        Log.d("Widget", "Token: $token")
     }
 
     override fun onDataSetChanged() {

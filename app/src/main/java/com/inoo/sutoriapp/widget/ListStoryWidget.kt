@@ -10,6 +10,7 @@ import android.widget.RemoteViews
 import androidx.core.net.toUri
 import com.inoo.sutoriapp.R
 import com.inoo.sutoriapp.ui.story.ui.detailstory.DetailStoryActivity
+import com.inoo.sutoriapp.ui.story.ui.detailstory.DetailStoryActivity.Companion.EXTRA_STORY_ID
 
 @Suppress("DEPRECATION")
 class ListStoryWidget : AppWidgetProvider() {
@@ -58,7 +59,7 @@ class ListStoryWidget : AppWidgetProvider() {
             val storyId = intent.getStringExtra(EXTRA_ITEM)
             val detailIntent = Intent(context, DetailStoryActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                putExtra("storyId", storyId)
+                putExtra(EXTRA_STORY_ID, storyId)
             }
             context.startActivity(detailIntent)
         }
