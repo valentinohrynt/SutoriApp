@@ -80,7 +80,6 @@ class LoginFragment : Fragment() {
 
         sessionViewModel.getToken().observe(viewLifecycleOwner) { token ->
             this.token = token
-            Log.d("Token1", token)
             checkLoginStatus()
         }
 

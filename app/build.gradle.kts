@@ -71,11 +71,8 @@ dependencies {
     implementation(libs.play.services.location)
 
     implementation(libs.androidx.paging.runtime.ktx)
-    implementation(libs.androidx.espresso.idling.resource)
     implementation(libs.androidx.junit.ktx)
-    implementation(libs.androidx.espresso.core)
     implementation(libs.accessibility.test.framework)
-    implementation(libs.androidx.espresso.intents)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.core.ktx)
@@ -103,6 +100,12 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.espresso.idling.resource)
+    implementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.contrib)
+
     implementation(libs.guava)
 
     testImplementation(libs.androidx.core.testing)
@@ -113,6 +116,4 @@ dependencies {
     androidTestImplementation(libs.androidx.core.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.espresso.contrib)
 }
