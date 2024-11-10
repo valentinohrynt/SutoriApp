@@ -16,7 +16,7 @@ class StoryRepository(private val storyDatabase: StoryDatabase, private val apiS
         @OptIn(ExperimentalPagingApi::class)
         return Pager(
             config = PagingConfig(
-                pageSize = 10,
+                pageSize=10,
                 enablePlaceholders = false
             ),
             remoteMediator = StoryRemoteMediator(storyDatabase, apiService),
