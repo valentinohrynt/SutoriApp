@@ -3,10 +3,8 @@ package com.inoo.sutoriapp.widget
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import androidx.lifecycle.ViewModelProvider
 import com.inoo.sutoriapp.R
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import kotlinx.coroutines.runBlocking
@@ -26,9 +24,6 @@ class StackRemoteViewsFactory(private val mContext: Context, private var widgetV
     }
 
     override fun onCreate() {
-        widgetViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(mContext.applicationContext as android.app.Application)
-            .create(WidgetViewModel::class.java)
-
         val sharedPreferences = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         token = sharedPreferences.getString("token", null).toString()
     }

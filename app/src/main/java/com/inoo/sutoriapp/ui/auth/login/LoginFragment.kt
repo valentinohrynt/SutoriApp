@@ -11,8 +11,6 @@ import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +18,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.inoo.sutoriapp.R
@@ -32,8 +31,8 @@ import com.inoo.sutoriapp.ui.customview.CustomButton
 import com.inoo.sutoriapp.ui.customview.EmailEditText
 import com.inoo.sutoriapp.ui.customview.PasswordEditText
 import com.inoo.sutoriapp.ui.story.ui.StoryActivity
-import com.inoo.sutoriapp.utils.Utils.showToast
 import com.inoo.sutoriapp.utils.EspressoIdlingResource.idlingResource
+import com.inoo.sutoriapp.utils.Utils.showToast
 
 class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
@@ -97,7 +96,8 @@ class LoginFragment : Fragment() {
 
         val start = registerSpan.text.indexOf(getString(R.string.register_now))
         val end = start + getString(R.string.register_now).length
-        val colorSpan = ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.md_theme_primary))
+        val colorSpan =
+            ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.md_theme_primary))
         spannableString.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         spannableString.setSpan(colorSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
@@ -158,7 +158,7 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun checkLoginStatus(){
+    private fun checkLoginStatus() {
         if (::token.isInitialized && token.isNotEmpty()) {
             val intent = Intent(requireContext(), StoryActivity::class.java)
             startActivity(intent)
@@ -213,13 +213,16 @@ class LoginFragment : Fragment() {
         loginViewModel.handleLoginResult(email, password)
 
         loginViewModel.loginResponse.observe(viewLifecycleOwner) { loginResponse ->
-            if (loginResponse != null ) {
+            if (loginResponse != null) {
                 val token = loginResponse.loginResult?.token
                 val name = loginResponse.loginResult?.name
-                if (token != null && name!=null && !isToastShown) {
+                if (token != null && name != null && !isToastShown) {
                     sessionViewModel.saveSession(token, name)
-                    val widgetSharedPrefences = requireContext().getSharedPreferences("SutoriAppWidgetSharedPreferences", Context.MODE_PRIVATE)
-                    widgetSharedPrefences.edit().putString("token", token).apply()
+                    val widgetSharedPreferences = requireContext().getSharedPreferences(
+                        "SutoriAppWidgetSharedPreferences",
+                        Context.MODE_PRIVATE
+                    )
+                    widgetSharedPreferences.edit().putString("token", token).apply()
                     showToast(requireContext(), getString(R.string.login_success))
                     isToastShown = true
                     idlingResource.decrement()
