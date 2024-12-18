@@ -62,12 +62,3 @@ This application allows users to log in, register, share stories, and view a lis
    - Use Paging 3 for displaying large sets of story data.
 7. **Testing**:
    - Implement unit tests to verify data loading, correctness, and empty states.
-
-### Resources
-- **Story API**: [API Documentation](https://story-api.dicoding.dev/v1/)
-  - The API provides endpoints to fetch, add, and manage stories.
-  - The maximum file size for uploads is 1 MB.
-  - Save and use the token received upon login for subsequent API requests.
-
-### Discussions and Help
-If you encounter issues, feel free to ask questions on the [Discussion Forum](https://www.dicoding.com/academies/352/discussions).
