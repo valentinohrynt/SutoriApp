@@ -4,10 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -21,8 +23,10 @@ import com.inoo.sutoriapp.databinding.ActivityStoryBinding
 import com.inoo.sutoriapp.ui.MainActivity
 import com.inoo.sutoriapp.ui.maps.MapsActivity
 import com.inoo.sutoriapp.ui.story.ui.addstory.AddStoryActivity
+import com.inoo.sutoriapp.ui.story.ui.liststory.ListStoryFragment
 import com.inoo.sutoriapp.utils.EspressoIdlingResource.idlingResource
 import com.inoo.sutoriapp.utils.Utils.showToast
+import kotlinx.coroutines.launch
 
 class StoryActivity : AppCompatActivity() {
     private var _binding: ActivityStoryBinding? = null
@@ -34,7 +38,7 @@ class StoryActivity : AppCompatActivity() {
     private lateinit var pref: SutoriAppPreferences
 
     private val sessionViewModel: SessionViewModel by viewModels {
-        SessionViewModelFactory.getInstance(pref)
+        SessionViewModelFactory(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,9 +55,20 @@ class StoryActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    val navHostFragment =
+                        supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    val currentFragment =
+                        navHostFragment.childFragmentManager.fragments.firstOrNull() as? ListStoryFragment
+                    currentFragment?.refresh()
+                }
+            }
+
         fabAddStory.setOnClickListener {
             val intent = Intent(this, AddStoryActivity::class.java)
-            startActivity(intent)
+            resultLauncher.launch(intent)
         }
 
         val navHostFragment =
@@ -73,6 +88,7 @@ class StoryActivity : AppCompatActivity() {
                 logout()
                 true
             }
+
             R.id.action_settings -> {
                 val navController = findNavController(R.id.nav_host_fragment)
                 if (navController.currentDestination?.id != R.id.settingsFragment) {
@@ -80,11 +96,13 @@ class StoryActivity : AppCompatActivity() {
                 }
                 true
             }
+
             R.id.action_maps -> {
                 val intent = Intent(this, MapsActivity::class.java)
                 startActivity(intent)
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -123,10 +141,15 @@ class StoryActivity : AppCompatActivity() {
         showToast(this, getString(R.string.logout_process))
         sessionViewModel.logout()
 
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish()
-        idlingResource.decrement()
+        this.lifecycleScope.launch {
+            sessionViewModel.logoutState.collect { logoutState ->
+                if (logoutState) {
+                    val intent = Intent(this@StoryActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                    idlingResource.decrement()
+                }
+            }
+        }
     }
-
 }

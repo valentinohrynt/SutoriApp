@@ -56,4 +56,5 @@
     <string name="location_permission_denied">Location permission denied.</string>
     <string name="your_location">You are here!</string>
     <string name="maps_error_message">Please check your network and try again.</string>
+    <string name="logout_failed">Logout failed</string>
 </resources>

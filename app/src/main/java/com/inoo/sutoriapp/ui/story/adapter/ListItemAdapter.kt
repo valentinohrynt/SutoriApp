@@ -56,9 +56,6 @@ class ListItemAdapter : PagingDataAdapter<ListStoryItem, ListItemAdapter.ViewHol
                 .error(R.drawable.image_broken_sutoriapp)
                 .into(photoImageView)
 
-            view.alpha = 0f
-            view.animate().alpha(1f).setDuration(500).start()
-
             view.setOnClickListener {
                 animateClick(view) {
                     val intent = Intent(context, DetailStoryActivity::class.java)

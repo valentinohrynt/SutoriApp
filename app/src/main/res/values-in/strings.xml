@@ -53,4 +53,5 @@
     <string name="location_permission_denied">Izin lokasi ditolak</string>
     <string name="your_location">Kamu di sini!</string>
     <string name="maps_error_message">Mohon periksa jaringan Anda dan coba lagi.</string>
+    <string name="logout_failed">Logout gagal</string>
 </resources>

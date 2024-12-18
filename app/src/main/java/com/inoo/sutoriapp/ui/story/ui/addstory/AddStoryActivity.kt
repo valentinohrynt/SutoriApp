@@ -1,6 +1,5 @@
 package com.inoo.sutoriapp.ui.story.ui.addstory
 
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -36,30 +35,28 @@ import com.inoo.sutoriapp.utils.Utils.createCustomTempFile
 import com.inoo.sutoriapp.utils.Utils.showToast
 import com.inoo.sutoriapp.utils.Utils.uriToFile
 import com.inoo.sutoriapp.R
-import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
-import com.inoo.sutoriapp.data.pref.SessionViewModel
-import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
-import com.inoo.sutoriapp.data.pref.dataStore
 import com.inoo.sutoriapp.utils.Utils.rotateImageIfRequired
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.FileOutputStream
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 class AddStoryActivity : AppCompatActivity() {
     private var _binding: ActivityAddStoryBinding? = null
     private val binding get() = _binding!!
 
     private val requestCodePermission = 10
-    private val requiredPermissions = arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+    private val requiredPermissions = arrayOf(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
-    private val addStoryViewModel: AddStoryViewModel by viewModels()
-    private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(pref)
+    private val addStoryViewModel: AddStoryViewModel by viewModels {
+        AddStoryViewModelFactory(this)
     }
-    private lateinit var pref : SutoriAppPreferences
-    private lateinit var token: String
 
     private var cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -71,7 +68,7 @@ class AddStoryActivity : AppCompatActivity() {
 
     private lateinit var addStoryContainer: ConstraintLayout
     private lateinit var imagePreview: ImageView
-    private lateinit var edAddDescription : CustomEditText
+    private lateinit var edAddDescription: CustomEditText
     private lateinit var buttonAdd: ImageButton
     private lateinit var switchLocation: SwitchMaterial
 
@@ -93,8 +90,6 @@ class AddStoryActivity : AppCompatActivity() {
         _binding = ActivityAddStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        pref = SutoriAppPreferences.getInstance(dataStore)
-
         cameraXContainer = binding.cameraxContainer
         previewView = binding.previewView
         buttonFlipCamera = binding.buttonFlipCamera
@@ -113,14 +108,11 @@ class AddStoryActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        sessionViewModel.getToken().observe(this) { token ->
-            this.token = token
-            setupView()
-        }
+        setupView()
 
     }
 
-    private fun setupView(){
+    private fun setupView() {
         requestPermissions()
 
         buttonFlipCamera.setOnClickListener {
@@ -139,12 +131,22 @@ class AddStoryActivity : AppCompatActivity() {
             sendStory()
         }
 
-        switchLocation.setOnClickListener{
+        switchLocation.setOnClickListener {
             if (switchLocation.isChecked) {
-                locationIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_location_on))
+                locationIcon.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.ic_location_on
+                    )
+                )
                 getUserLocation()
             } else {
-                locationIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_location_off))
+                locationIcon.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.ic_location_off
+                    )
+                )
             }
         }
     }
@@ -172,7 +174,10 @@ class AddStoryActivity : AppCompatActivity() {
 
     private fun allPermissionsGranted(): Boolean {
         return requiredPermissions.all { permission ->
-            ContextCompat.checkSelfPermission(baseContext, permission) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                baseContext,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -180,7 +185,11 @@ class AddStoryActivity : AppCompatActivity() {
         ActivityCompat.requestPermissions(this, requiredPermissions, requestCodePermission)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == requestCodePermission) {
             if (allPermissionsGranted()) {
@@ -220,9 +229,12 @@ class AddStoryActivity : AppCompatActivity() {
                     preview,
                     imageCapture
                 )
-            } catch (exc: Exception) {
-                showToast(this,
-                    getString(R.string.failed_camera))
+            } catch (e: Exception) {
+                showToast(
+                    this,
+                    getString(R.string.failed_camera)
+                )
+                Log.e("AddStoryActivity", "$e")
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -243,7 +255,8 @@ class AddStoryActivity : AppCompatActivity() {
             return
         }
 
-        val requestBodyDescription = RequestBody.create("text/plain".toMediaTypeOrNull(), description)
+        val requestBodyDescription =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), description)
         val requestLat = RequestBody.create("text/plain".toMediaTypeOrNull(), latString)
         val requestLong = RequestBody.create("text/plain".toMediaTypeOrNull(), longString)
 
@@ -257,7 +270,7 @@ class AddStoryActivity : AppCompatActivity() {
         observeError()
     }
 
-    private fun observeLoading(){
+    private fun observeLoading() {
         addStoryViewModel.isLoading.observe(this) { isLoading ->
             if (isLoading) {
                 progressBar.visibility = View.VISIBLE
@@ -267,22 +280,28 @@ class AddStoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeUploadResponse(){
+    private fun observeUploadResponse() {
         addStoryViewModel.uploadResponse.observe(this) { uploadResponse ->
             if (uploadResponse != null && !isToastShown) {
                 showToast(this, getString(R.string.post_success))
                 isToastShown = true
                 addStoryViewModel.clearError()
+                setResult(RESULT_OK)
                 finish()
             }
         }
     }
 
-    private fun postStory(requestBodyDescription: RequestBody, photoPart: MultipartBody.Part, requestLat: RequestBody, requestLong: RequestBody) {
-        addStoryViewModel.postAddStory(token, requestBodyDescription, photoPart, requestLat, requestLong)
+    private fun postStory(
+        requestBodyDescription: RequestBody,
+        photoPart: MultipartBody.Part,
+        requestLat: RequestBody,
+        requestLong: RequestBody
+    ) {
+        addStoryViewModel.postAddStory(requestBodyDescription, photoPart, requestLat, requestLong)
     }
 
-    private fun observeError(){
+    private fun observeError() {
         addStoryViewModel.error.observe(this) { error ->
             if (error != null) {
                 showToast(this, getString(R.string.post_failed))
@@ -292,8 +311,8 @@ class AddStoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun flipCamera(){
-        if(!isFrontCamera){
+    private fun flipCamera() {
+        if (!isFrontCamera) {
             cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
             isFrontCamera = true
             startCamera()
@@ -355,7 +374,7 @@ class AddStoryActivity : AppCompatActivity() {
     private val launcherGallery = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val uri: Uri? = result.data?.data
             uri?.let {
                 currentImageUri = it
@@ -382,7 +401,8 @@ class AddStoryActivity : AppCompatActivity() {
     private fun getUserLocation() {
         if (ContextCompat.checkSelfPermission(
                 this, android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED) {
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
 
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
@@ -401,6 +421,12 @@ class AddStoryActivity : AppCompatActivity() {
         } else {
             requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        setResult(RESULT_CANCELED)
+        finish()
     }
 
     override fun onResume() {

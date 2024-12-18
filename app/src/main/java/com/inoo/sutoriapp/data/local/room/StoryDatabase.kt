@@ -7,7 +7,6 @@ import com.inoo.sutoriapp.data.local.remotemediator.RemoteKeys
 import com.inoo.sutoriapp.data.local.remotemediator.RemoteKeysDao
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 
-
 @Database(
     entities = [ListStoryItem::class, RemoteKeys::class],
     version = 2,

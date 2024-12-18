@@ -28,10 +28,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.inoo.sutoriapp.R
-import com.inoo.sutoriapp.data.pref.SessionViewModel
-import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
-import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
-import com.inoo.sutoriapp.data.pref.dataStore
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.databinding.ActivityMapsBinding
 import com.inoo.sutoriapp.utils.Utils.showToast
@@ -41,16 +37,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    private val mapsViewModel: MapsViewModel by viewModels()
-    private lateinit var progressBar: ProgressBar
-
-    private lateinit var pref : SutoriAppPreferences
-    private var token: String? = null
-    private var location: Int = 1
-
-    private val sessionViewModel: SessionViewModel by viewModels{
-        SessionViewModelFactory.getInstance(pref)
+    private val mapsViewModel: MapsViewModel by viewModels {
+        MapsViewModelFactory(this)
     }
+    private lateinit var progressBar: ProgressBar
+    private var location: Int = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,21 +55,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        initializeVariables()
+        setupView()
     }
 
-    private fun initializeVariables() {
-        val dataStore = this.applicationContext.dataStore
-        pref = SutoriAppPreferences.getInstance(dataStore)
-
-        sessionViewModel.getToken().observe(this) { token ->
-            this.token = token
-            setupView(token)
-        }
-    }
-
-    private fun setupView(token: String) {
-        mapsViewModel.fetchStoriesWithLocation(token, location)
+    private fun setupView() {
+        mapsViewModel.fetchStoriesWithLocation(location)
         observeStories()
         observeLoading()
         observeError()
@@ -125,11 +106,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun addMarkerForStory(story: ListStoryItem) {
-        val position = story.lon?.let { lon ->
-            story.lat?.let { lat -> LatLng(lat, lon) }
-        }
+        val position = LatLng(story.lat, story.lon)
 
-        position?.let { latLng ->
+        position.let { latLng ->
             val markerOptions = MarkerOptions()
                 .position(latLng)
                 .title(story.name)
@@ -160,11 +139,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun getMyLocation(){
+    private fun getMyLocation() {
         if (ContextCompat.checkSelfPermission(
                 this.applicationContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED) {
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             mMap.isMyLocationEnabled = true
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -185,6 +165,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         vectorDrawable.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
+
     companion object {
         private const val TAG = "MapsActivity"
     }

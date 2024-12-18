@@ -39,9 +39,14 @@ class SutoriAppPreferences private constructor(private val dataStore: DataStore<
         }
     }
 
-    suspend fun saveToken(token: String, name: String) {
+    suspend fun saveToken(token: String) {
         dataStore.edit { preferences ->
             preferences[tokenKey] = token
+        }
+    }
+
+    suspend fun saveName(name: String) {
+        dataStore.edit { preferences ->
             preferences[nameKey] = name
         }
     }
@@ -57,18 +62,6 @@ class SutoriAppPreferences private constructor(private val dataStore: DataStore<
         return dataStore.data.map { preferences ->
             val name = preferences[nameKey] ?: ""
             name
-        }
-    }
-
-    suspend fun invalidateToken () {
-        dataStore.edit { preferences ->
-            preferences.remove(tokenKey)
-        }
-    }
-
-    suspend fun invalidateName () {
-        dataStore.edit { preferences ->
-            preferences.remove(nameKey)
         }
     }
 

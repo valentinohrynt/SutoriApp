@@ -11,7 +11,7 @@ import androidx.paging.PagingState
 import androidx.recyclerview.widget.ListUpdateCallback
 import com.inoo.sutoriapp.DataDummy
 import com.inoo.sutoriapp.MainDispatcherRule
-import com.inoo.sutoriapp.data.local.StoryRepository
+import com.inoo.sutoriapp.data.repository.StoryRepository
 import com.inoo.sutoriapp.data.remote.response.story.ListStoryItem
 import com.inoo.sutoriapp.getOrAwaitValue
 import com.inoo.sutoriapp.ui.story.adapter.ListItemAdapter

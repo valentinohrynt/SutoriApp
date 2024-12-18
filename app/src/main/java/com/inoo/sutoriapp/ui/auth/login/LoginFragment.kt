@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,12 +21,9 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.inoo.sutoriapp.R
-import com.inoo.sutoriapp.data.pref.SessionViewModel
-import com.inoo.sutoriapp.data.pref.SessionViewModelFactory
-import com.inoo.sutoriapp.data.pref.SutoriAppPreferences
-import com.inoo.sutoriapp.data.pref.dataStore
 import com.inoo.sutoriapp.databinding.FragmentLoginBinding
 import com.inoo.sutoriapp.ui.customview.CustomButton
 import com.inoo.sutoriapp.ui.customview.EmailEditText
@@ -33,15 +31,14 @@ import com.inoo.sutoriapp.ui.customview.PasswordEditText
 import com.inoo.sutoriapp.ui.story.ui.StoryActivity
 import com.inoo.sutoriapp.utils.EspressoIdlingResource.idlingResource
 import com.inoo.sutoriapp.utils.Utils.showToast
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
     private var isToastShown = false
-
-    private lateinit var pref: SutoriAppPreferences
-    private lateinit var token: String
 
     private lateinit var loginButton: CustomButton
     private lateinit var emailEditText: EmailEditText
@@ -50,9 +47,8 @@ class LoginFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var overlay: FrameLayout
 
-    private val loginViewModel: LoginViewModel by viewModels()
-    private val sessionViewModel: SessionViewModel by viewModels {
-        SessionViewModelFactory.getInstance(pref)
+    private val loginViewModel: LoginViewModel by viewModels {
+        LoginViewModelFactory(requireContext())
     }
 
     override fun onCreateView(
@@ -73,14 +69,6 @@ class LoginFragment : Fragment() {
         registerSpan = binding.tvRegister
         progressBar = binding.progressBar
         overlay = binding.overlay
-
-        val dataStore = requireContext().applicationContext.dataStore
-        pref = SutoriAppPreferences.getInstance(dataStore)
-
-        sessionViewModel.getToken().observe(viewLifecycleOwner) { token ->
-            this.token = token
-            checkLoginStatus()
-        }
 
         val spannableString = SpannableString(registerSpan.text)
         val clickableSpan = object : ClickableSpan() {
@@ -136,18 +124,14 @@ class LoginFragment : Fragment() {
                 checkForEditTextErrors()
             }
         })
-
         checkLoginStatus()
-
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
             handleLogin(email, password)
         }
-
         observeLoading()
         observeError()
-
     }
 
     private fun checkForEditTextErrors() {
@@ -159,12 +143,20 @@ class LoginFragment : Fragment() {
     }
 
     private fun checkLoginStatus() {
-        if (::token.isInitialized && token.isNotEmpty()) {
-            val intent = Intent(requireContext(), StoryActivity::class.java)
-            startActivity(intent)
-            requireActivity().finish()
+        viewLifecycleOwner.lifecycleScope.launch {
+            loginViewModel.token.combine(loginViewModel.name) { token, name ->
+                token to name
+            }.collect { (token, name) ->
+                if (token.isNotEmpty() && name.isNotEmpty()) {
+                    val intent = Intent(requireContext(), StoryActivity::class.java)
+                    intent.putExtra("name", name)
+                    startActivity(intent)
+                    requireActivity().finish()
+                }
+            }
         }
     }
+
 
     private fun observeLoading() {
         loginViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -174,7 +166,7 @@ class LoginFragment : Fragment() {
 
                 overlay.alpha = 0f
                 overlay.animate()
-                    .alpha(0.5f)
+                    .alpha(0.8f)
                     .setDuration(300)
                     .setListener(null)
             } else {
@@ -192,48 +184,51 @@ class LoginFragment : Fragment() {
     private fun observeError() {
         loginViewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             if (errorMessage != null) {
-                if (errorMessage === "Unauthorized") {
+                if (!idlingResource.isIdleNow) {
                     idlingResource.decrement()
-                    showToast(requireContext(), getString(R.string.login_failed))
-                    setLoginButtonEnable()
-                    loginViewModel.clearError()
-                } else {
-                    idlingResource.decrement()
-                    showToast(requireContext(), getString(R.string.login_failed_no_internet))
-                    setLoginButtonEnable()
-                    loginViewModel.clearError()
                 }
+                showToast(requireContext(), errorMessage)
+                setLoginButtonEnable()
+                loginViewModel.clearError()
             }
         }
     }
 
     private fun handleLogin(email: String, password: String) {
         idlingResource.increment()
-        setLoginButtonDisable()
-        loginViewModel.handleLoginResult(email, password)
+        try {
+            setLoginButtonDisable()
+            loginViewModel.handleLoginResult(email, password)
 
-        loginViewModel.loginResponse.observe(viewLifecycleOwner) { loginResponse ->
-            if (loginResponse != null) {
-                val token = loginResponse.loginResult?.token
-                val name = loginResponse.loginResult?.name
-                if (token != null && name != null && !isToastShown) {
-                    sessionViewModel.saveSession(token, name)
-                    val widgetSharedPreferences = requireContext().getSharedPreferences(
-                        "SutoriAppWidgetSharedPreferences",
-                        Context.MODE_PRIVATE
-                    )
-                    widgetSharedPreferences.edit().putString("token", token).apply()
-                    showToast(requireContext(), getString(R.string.login_success))
-                    isToastShown = true
-                    idlingResource.decrement()
-                    val intent = Intent(requireContext(), StoryActivity::class.java)
-                    startActivity(intent)
-                    requireActivity().finish()
+            loginViewModel.loginResponse.observe(viewLifecycleOwner) { loginResponse ->
+                if (loginResponse != null) {
+                    val token = loginResponse.loginResult?.token
+                    val name = loginResponse.loginResult?.name
+                    Log.d("LoginFragment", "Token: $token, Name: $name")
+                    if (token != null && name != null && !isToastShown) {
+//                        loginViewModel.saveSession(token, name)
+                        val widgetSharedPreferences = requireContext().getSharedPreferences(
+                            "SutoriAppWidgetSharedPreferences",
+                            Context.MODE_PRIVATE
+                        )
+                        widgetSharedPreferences.edit().putString("token", token).apply()
+                        showToast(requireContext(), getString(R.string.login_success))
+                        isToastShown = true
+                        if (token.isNotEmpty() && name.isNotEmpty()) {
+                            val intent = Intent(requireContext(), StoryActivity::class.java)
+                            intent.putExtra("name", name)
+                            startActivity(intent)
+                            requireActivity().finish()
+                        }
+                    }
+                } else {
+                    showToast(requireContext(), getString(R.string.login_failed))
+                    setLoginButtonEnable()
                 }
-            } else {
+            }
+        } finally {
+            if (!idlingResource.isIdleNow) {
                 idlingResource.decrement()
-                showToast(requireContext(), getString(R.string.login_failed))
-                setLoginButtonEnable()
             }
         }
     }
